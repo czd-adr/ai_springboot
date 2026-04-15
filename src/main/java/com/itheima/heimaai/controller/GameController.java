@@ -30,10 +30,12 @@ public class GameController {
                 .content();
     }
     @GetMapping("/angry-events")
-    public List<AngryEvent> getAngryEvents() {
-        System.out.println("213");
+    public AngryEvent getAngryEvents() {
         List<AngryEvent> events = new ArrayList<>(AngryEventConstant.ANGRY_EVENTS);
+        if (events.isEmpty()) {
+            return null; // 或者抛出一个异常
+        }
         Collections.shuffle(events);
-        return events;
+        return events.get(0); // 只取打乱后的第一个
     }
 }
