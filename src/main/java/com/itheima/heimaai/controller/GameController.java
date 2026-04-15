@@ -21,6 +21,7 @@ public class GameController {
     private final ChatClient gameChatClient;
     @PostMapping("/game")  // ✅ 明确是 POST 请求
     public Flux<String> chat(@RequestBody ChatRequest request) {
+
         //请求模型
         return gameChatClient.prompt()
                 .user(request.getPrompt())
@@ -30,6 +31,7 @@ public class GameController {
     }
     @GetMapping("/angry-events")
     public List<AngryEvent> getAngryEvents() {
+        System.out.println("213");
         List<AngryEvent> events = new ArrayList<>(AngryEventConstant.ANGRY_EVENTS);
         Collections.shuffle(events);
         return events;

@@ -10,6 +10,8 @@ public class AngryEvent {
 
     private String reason;
 
-    public AngryEvent(int i, String s) {
+    public AngryEvent(int i, String s) {//构造器
+        this.id = i;
+        this.reason = s;
     }
 }
