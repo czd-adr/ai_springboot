@@ -2,15 +2,13 @@ package com.itheima.heimaai.controller;
 
 import com.itheima.heimaai.constants.AngryEventConstant;
 import com.itheima.heimaai.dto.ChatRequest;
-import com.itheima.heimaai.entity.vo.AngryEvent;
+import com.itheima.heimaai.entity.AngryEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

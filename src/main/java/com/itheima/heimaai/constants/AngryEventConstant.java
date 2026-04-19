@@ -1,6 +1,6 @@
 package com.itheima.heimaai.constants;
 
-import com.itheima.heimaai.entity.vo.AngryEvent;
+import com.itheima.heimaai.entity.AngryEvent;
 
 import java.util.Arrays;
 import java.util.List;

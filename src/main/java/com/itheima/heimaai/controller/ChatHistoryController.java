@@ -1,6 +1,6 @@
 package com.itheima.heimaai.controller;
 
-import com.itheima.heimaai.entity.vo.MessageVo;
+import com.itheima.heimaai.entity.MessageVo;
 import com.itheima.heimaai.repository.ChatHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController

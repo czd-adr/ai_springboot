@@ -1,4 +1,4 @@
-package com.itheima.heimaai.entity.vo;
+package com.itheima.heimaai.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
