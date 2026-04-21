@@ -5,7 +5,7 @@ spring:
     username: root
     password: 5599385
   application:
-    name:heima-ai
+    name: heima-ai
   ai:
     ollama:
       base-url: http://localhost:11434
@@ -17,7 +17,14 @@ spring:
       chat:
         options:
           model: qwen-max-latest
+      embedding:
+        options:
+          model: text-embedding-v3
+          dimensions: 1024
 logging:
   level:
     org.springframework.ai.chat.client.advisor: debug
     com.itheima.ai: debug
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.itheima.heimaai.entity
