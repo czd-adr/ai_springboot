@@ -4,11 +4,16 @@ import com.itheima.heimaai.constants.SystemConstants;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.SimpleVectorStore;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,7 +32,10 @@ public class CommonConfiguration {
                 .maxMessages(20)  // ✅ 可选：限制每个会话保留的消息数
                 .build();
     }
-
+    @Bean
+    public VectorStore vectorStore(OpenAiEmbeddingModel openAiEmbeddingModel) {
+        return SimpleVectorStore.builder(openAiEmbeddingModel).build();
+    }
     @Bean
     public ChatClient chatClient(OllamaChatModel model ,ChatMemory chatMemory) {
         return ChatClient
@@ -49,6 +57,26 @@ public class CommonConfiguration {
                         new SimpleLoggerAdvisor(),
                         // ✅ 绑定记忆顾问，启用多轮对话
                         MessageChatMemoryAdvisor.builder(chatMemory).build()
+                )
+                .build();
+    }
+    @Bean
+    public ChatClient pdfChatClient(OpenAiChatModel chatModel,
+                                    ChatMemory chatMemory,
+                                    VectorStore vectorStore) {
+        return ChatClient.builder(chatModel)
+                .defaultSystem("你是一个专门处理遥感影像分类和湿地研究的助手。")
+                .defaultAdvisors(
+                        // 聊天记忆
+                        MessageChatMemoryAdvisor.builder(chatMemory).build(),
+
+                        // RAG Advisor：如果这里依然报错，请检查上面提到的 Maven 依赖
+                        QuestionAnswerAdvisor.builder(vectorStore)
+                                .searchRequest(SearchRequest.builder()
+                                        .similarityThreshold(0.6)
+                                        .topK(2)
+                                        .build())
+                                .build()
                 )
                 .build();
     }

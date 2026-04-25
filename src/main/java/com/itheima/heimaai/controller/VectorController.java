@@ -1,19 +1,37 @@
 package com.itheima.heimaai.controller;
 
 import com.itheima.heimaai.util.VectorDistance;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.reader.ExtractedTextFormatter;
+import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
+import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.ai.document.Document;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/vector")
 public class VectorController {
     @Autowired
+    private VectorStore vectorStore;
+    @Autowired
     private OpenAiEmbeddingModel openAiEmbeddingModel;
+
+    private final ChatClient chatClient;
+    public VectorController(ChatClient chatClient) {
+        this.chatClient = chatClient;
+    }
     @GetMapping("/test-rs-ranking")
     public List<Map<String, Object>> testRemoteSensingRanking() {
         // 1. 定义基准词
@@ -49,5 +67,72 @@ public class VectorController {
         results.sort((a, b) -> Double.compare((double) b.get("cosineSimilarity"), (double) a.get("cosineSimilarity")));
 
         return results;
+    }
+    @GetMapping("/test-pdf")
+    public Map<String, Object> testPdfDocumentReader(@RequestParam(required = false) String query) {
+        Map<String, Object> response = new HashMap<>();
+
+        // 1. 固定文件路径
+        String filePath = "D:\\Edge\\综合混合像元分解与分形理论方法的遥感蚀变信息提取_乔锴.pdf";
+        Resource resource = new FileSystemResource(filePath);
+
+        // 2. 文件存在性校验
+        if (!resource.exists()) {
+            response.put("status", "error");
+            response.put("message", "本地文件未找到，请确认路径: " + filePath);
+            return response;
+        }
+
+        // 3. 入参 query 校验与设置（如果用户没传，设置默认业务查询）
+        if (query == null || query.trim().isEmpty()) {
+            query = "什么是分形理论方法？";
+        }
+
+        try {
+            // 4. 读取 PDF
+            PdfDocumentReaderConfig config = PdfDocumentReaderConfig.builder()
+                    .withPageExtractedTextFormatter(ExtractedTextFormatter.defaults())
+                    .withPagesPerDocument(1)
+                    .build();
+
+            PagePdfDocumentReader reader = new PagePdfDocumentReader(resource, config);
+
+            // 注意：有些版本是 get()，有些是 read()，根据你之前的截图请使用 read()
+            List<org.springframework.ai.document.Document> documents = reader.read();
+
+            if (documents == null || documents.isEmpty()) {
+                response.put("status", "error");
+                response.put("message", "PDF解析失败，未提取到文本内容");
+                return response;
+            }
+
+            // 5. 存入向量库
+            vectorStore.add(documents);
+            System.out.println(query);
+            // 6. 执行搜索
+            SearchRequest searchRequest = SearchRequest.builder()
+                    .query(query)
+                    .topK(2)
+                    .similarityThreshold(0.5)
+                    .build();
+
+            List<org.springframework.ai.document.Document> resultDocs = vectorStore.similaritySearch(searchRequest);
+
+            // 7. 组装结果，使用 getText() 替代 getContent()
+            List<String> contentList = resultDocs.stream()
+                    .map(doc -> doc.getText()) // 关键修改点
+                    .collect(Collectors.toList());
+
+            response.put("status", "success");
+            response.put("file", filePath);
+            response.put("query", query);
+            response.put("results", contentList);
+
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "处理失败: " + e.getMessage());
+        }
+
+        return response;
     }
 }

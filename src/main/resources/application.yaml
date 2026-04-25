@@ -6,6 +6,10 @@ spring:
     password: 5599385
   application:
     name: heima-ai
+  servlet:
+    multipart:
+      max-file-size: 50MB          # 单个文件最大限制 (默认1MB)
+      max-request-size: 50MB
   ai:
     ollama:
       base-url: http://localhost:11434
